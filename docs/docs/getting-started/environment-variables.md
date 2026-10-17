@@ -10,7 +10,7 @@ description: LaraPaper environment configuration reference.
 | `TRMNL_PROXY_BASE_URL` | Base URL of the native TRMNL service | `https://trmnl.app` |
 | `TRMNL_PROXY_REFRESH_MINUTES` | How often to fetch new images from the cloud service | `15` |
 | `REGISTRATION_ENABLED` | Allow registration via the web UI | `1` |
-| `PASSKEYS_ENABLED` | Enable passkeys (requires HTTPS) | `0` |
+| `PASSKEYS_ENABLED` | Enable passkeys (requires HTTPS). See [Authentication](/getting-started/authentication#passkeys) | `0` |
 | `SSL_MODE` | SSL mode when not behind a reverse proxy ([docs](https://serversideup.net/open-source/docker-php/docs/customizing-the-image/configuring-ssl)) | `off` |
 | `FORCE_HTTPS` | Enforce HTTPS when the server terminates SSL | `0` |
 | `TRUSTED_PROXIES` | Trusted proxy CIDRs, e.g. `"172.0.0.0/8"` or `*`; also needed to [serve under a sub-path](/getting-started/installation#serving-under-a-sub-path) | `null` |
@@ -30,3 +30,17 @@ Framework CSS and JavaScript for recipe screens can be loaded from a mirror or l
 | `TRMNL_BLADE_FRAMEWORK_JS_URL` | Override the framework JavaScript URL | `null` |
 
 Explicit stylesheet and JavaScript URLs take precedence over the base URL and per-recipe framework version.
+
+## OpenID Connect
+
+Optional sign-in through an OpenID Connect provider. See [Authentication](/getting-started/authentication).
+
+The redirect URI is `{APP_URL}/auth/oidc/callback`. It is not a separate variable.
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `OIDC_ENABLED` | Enable the OIDC login button and callback | `false` |
+| `OIDC_ENDPOINT` | Provider base URL, or the full well-known configuration URL | |
+| `OIDC_CLIENT_ID` | OAuth client ID | |
+| `OIDC_CLIENT_SECRET` | OAuth client secret | |
+| `OIDC_SCOPES` | Comma-separated scopes | `openid,profile,email` |

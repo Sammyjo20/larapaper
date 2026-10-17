@@ -74,6 +74,11 @@ export default defineConfig({
           icon: 'settings',
         },
         {
+          title: 'Authentication',
+          path: '/getting-started/authentication',
+          icon: 'key-round',
+        },
+        {
           title: 'Connecting devices',
           path: '/getting-started/connecting-devices',
           icon: 'monitor-smartphone',
