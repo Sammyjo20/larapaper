@@ -7,8 +7,7 @@ export default defineConfig({
   logo: {
     light: 'assets/images/logo-light.svg',
     dark: 'assets/images/logo-dark.svg',
-    alt: 'LaraPaper',
-    href: '/larapaper/'
+    alt: 'LaraPaper'
   },
   favicon: 'assets/favicon.ico',
 
