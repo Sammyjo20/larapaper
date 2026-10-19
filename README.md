@@ -75,7 +75,7 @@ docker compose up -d
 ```
 
 #### VPS
-If you’re using a VPS (e.g., Hetzner) and prefer an alternative to native Docker, you can install Dokploy and deploy LaraPaper using the integrated [Template](https://templates.dokploy.com/?q=trmnl+byos+laravel).
+If you’re using a VPS (e.g., Hetzner) and prefer an alternative to native Docker, you can install Dokploy and deploy LaraPaper using the integrated [Template](https://templates.dokploy.com/?q=LaraPaper).
 It’s a quick way to get started without having to manually manage Docker setup.
 
 #### PikaPods
