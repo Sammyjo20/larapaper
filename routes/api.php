@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Firmware\DeviceLogController;
 use App\Http\Controllers\Api\Firmware\DisplayController;
 use App\Http\Controllers\Api\Firmware\ScreenController;
 use App\Http\Controllers\Api\Firmware\SetupController;
+use App\Http\Controllers\Api\PlaylistController;
 use App\Http\Controllers\Api\PluginActionController;
 use App\Http\Controllers\Api\PluginArchiveController;
 use App\Http\Controllers\Api\PluginSettingsController;
@@ -40,6 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/devices/{device}', [DeviceController::class, 'show'])->name('api.devices.show');
     Route::patch('/devices/{device}', [DeviceController::class, 'update'])->name('api.devices.update');
     Route::get('/device-models', [DeviceModelController::class, 'index']);
+
+    Route::get('/playlists', [PlaylistController::class, 'index'])->name('api.playlists.index');
+    Route::patch('/playlists/{playlist}', [PlaylistController::class, 'update'])->name('api.playlists.update');
 
     Route::get('/display/status', [DisplayStatusController::class, 'show'])->name('display.status');
     Route::post('/display/status', [DisplayStatusController::class, 'update'])->name('display.status.post');
