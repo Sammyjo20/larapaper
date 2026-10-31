@@ -258,7 +258,7 @@ class RunDeviceDisplayCycle
             palette: $device->palette ?? $device->deviceModel?->palette,
             device: $device,
             plugin: $plugin,
-            existingImageId: $device->offline_screen_image,
+            existingImageId: $plugin->current_image,
         );
 
         $plugin->update([

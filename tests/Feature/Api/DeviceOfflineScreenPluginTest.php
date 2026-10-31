@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Device;
+use App\Models\Playlist;
+use App\Models\PlaylistItem;
 use App\Models\Plugin;
 use App\Models\User;
 use App\Services\DeviceScreenFilename;
@@ -453,4 +455,75 @@ test('sleeping device clears the cached image and shows the sleep face when stal
         ->and($plugin->fresh()->current_image)->toBeNull()
         ->and($plugin->fresh()->current_image_metadata)->toBeNull()
         ->and($device->fresh()->offline_screen_image)->toBeNull();
+});
+
+test('a woken device keeps its real awake screen instead of a divergent offline image', function (): void {
+    $user = User::factory()->create();
+
+    // A recipe plugin used both in the playlist and as the pause screen. Its awake
+    // and offline renders are byte-identical, so the offline render must deduplicate
+    // onto the shared plugin cache rather than minting a parallel offline-only file.
+    $plugin = Plugin::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Date',
+        'polling_url' => null,
+        'data_stale_minutes' => 60,
+        'data_strategy' => 'polling',
+        'polling_verb' => 'get',
+        'render_markup_view' => 'trmnl',
+        'is_native' => false,
+        'data_payload_updated_at' => null,
+        'current_image' => null,
+    ]);
+
+    $device = Device::factory()->create([
+        'user_id' => $user->id,
+        'mac_address' => '00:11:22:33:44:F0',
+        'api_key' => 'wake-regression-key',
+        'pause_plugin_id' => $plugin->id,
+    ]);
+
+    $playlist = Playlist::factory()->create([
+        'device_id' => $device->id,
+        'is_active' => true,
+        'weekdays' => null,
+        'active_from' => null,
+        'active_until' => null,
+    ]);
+    PlaylistItem::factory()->create([
+        'playlist_id' => $playlist->id,
+        'plugin_id' => $plugin->id,
+        'order' => 1,
+        'is_active' => true,
+        'last_displayed_at' => null,
+    ]);
+
+    // 1. Awake: the playlist renders the plugin onto the current screen.
+    Carbon::setTestNow(Carbon::parse('2000-01-01 12:00:00'));
+    fetchDisplay($device)->assertOk();
+
+    $awakeImage = $device->fresh()->current_screen_image;
+    expect($awakeImage)->not->toBeNull();
+    Storage::disk('public')->assertExists("images/generated/{$awakeImage}.png");
+
+    // 2. Pause with stale data so the offline path actually re-renders. Because the
+    //    render is byte-identical, it deduplicates back onto the awake image.
+    Carbon::setTestNow(Carbon::parse('2000-01-01 14:00:00'));
+    $device->update(['pause_until' => Carbon::parse('2000-01-01 14:05:00')]);
+    fetchDisplay($device)->assertOk();
+
+    expect($device->fresh()->offline_screen_image)->toBe($awakeImage)
+        ->and($plugin->fresh()->current_image)->toBe($awakeImage)
+        ->and($device->fresh()->current_screen_image)->toBe($awakeImage);
+
+    // 3. Wake once the pause lapses (plugin data still fresh). The awake screen must
+    //    still point at the real, existing image — not a reclaimed offline-only file.
+    Carbon::setTestNow(Carbon::parse('2000-01-01 14:06:00'));
+    $wake = fetchDisplay($device)->assertOk()->json();
+
+    expect($device->fresh()->current_screen_image)->toBe($awakeImage);
+
+    $wakePath = 'images/generated/'.basename((string) parse_url((string) $wake['image_url'], PHP_URL_PATH));
+    expect($wakePath)->toBe("images/generated/{$awakeImage}.png");
+    Storage::disk('public')->assertExists($wakePath);
 });
