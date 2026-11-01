@@ -408,6 +408,7 @@ class ImageGenerationService
         $activePluginImageUuids = Plugin::pluck('current_image')->filter()->toArray();
         $activeImageUuids = array_merge($activeDeviceImageUuids, $activeOfflineImageUuids, $activePluginImageUuids);
 
+        $deleted = [];
         $files = Storage::disk('public')->files('/images/generated/');
         foreach ($files as $file) {
             if (basename($file) === '.gitignore') {
@@ -418,8 +419,17 @@ class ImageGenerationService
             // If the UUID is not in use by any device, move it to archive
             if (! in_array($fileUuid, $activeImageUuids)) {
                 Storage::disk('public')->delete($file);
+                $deleted[] = $fileUuid;
             }
         }
+
+        DisplayTrace::log('cleanup.run', [
+            'deleted' => $deleted,
+            'deleted_count' => count($deleted),
+            'active_current_screen' => array_values($activeDeviceImageUuids),
+            'active_offline' => array_values($activeOfflineImageUuids),
+            'active_plugin' => array_values($activePluginImageUuids),
+        ]);
     }
 
     /**

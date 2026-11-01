@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Device;
 use App\Models\Plugin;
 use App\Plugins\Enums\PluginOutput;
+use App\Services\DisplayTrace;
 use App\Services\ImageGenerationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,6 +53,12 @@ class GenerateScreenJob implements ShouldQueue
                 'data_payload_updated_at' => now(),
             ]);
         }
+
+        DisplayTrace::log('generate_screen.done', [
+            'device_id' => $this->deviceId,
+            'plugin_id' => $this->pluginId,
+            'new_image_uuid' => $newImageUuid,
+        ]);
 
         ImageGenerationService::cleanupFolder();
     }

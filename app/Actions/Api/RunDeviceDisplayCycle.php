@@ -9,6 +9,7 @@ use App\Models\Plugin;
 use App\Plugins\Enums\PluginOutput;
 use App\Services\DeviceImageResolver;
 use App\Services\DeviceScreenFilename;
+use App\Services\DisplayTrace;
 use App\Services\ImageGenerationService;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -188,6 +189,14 @@ class RunDeviceDisplayCycle
         $plugin->refresh();
 
         if ($plugin->current_image !== null) {
+            DisplayTrace::log('render.single_plugin', [
+                'device_id' => $device->id,
+                'plugin_id' => $plugin->id,
+                'needs_render' => $needsRender,
+                'was_stale' => $isDataStale,
+                'new_current_screen_image' => $plugin->current_image,
+            ]);
+
             $playlistItem->update(['last_displayed_at' => now()]);
             $device->update(['current_screen_image' => $plugin->current_image]);
 
@@ -336,6 +345,13 @@ class RunDeviceDisplayCycle
             }
 
             if ($imageUuid !== null) {
+                DisplayTrace::log('render.offline', [
+                    'device_id' => $device->id,
+                    'plugin_id' => $plugin->id,
+                    'prev_offline_screen_image' => $device->offline_screen_image,
+                    'new_offline_screen_image' => $imageUuid,
+                ]);
+
                 $device->update(['offline_screen_image' => $imageUuid]);
 
                 return $this->imageResolver->resolve($device, $imageUuid);

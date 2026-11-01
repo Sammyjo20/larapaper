@@ -36,6 +36,12 @@ class DeviceImageResolver
             }
         }
 
+        DisplayTrace::log('resolve.missing_on_disk', [
+            'device_id' => $device->id,
+            'image_uuid' => $imageUuid,
+            'preferred' => $preferred,
+        ]);
+
         return "images/generated/{$imageUuid}.bmp";
     }
 }

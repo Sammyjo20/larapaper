@@ -7,6 +7,7 @@ use App\Actions\Api\RunDeviceDisplayCycle;
 use App\Actions\Api\UpdateDeviceTelemetry;
 use App\Http\Controllers\Controller;
 use App\Services\DeviceScreenFilename;
+use App\Services\DisplayTrace;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -32,10 +33,27 @@ class DisplayController extends Controller
 
         $this->updateTelemetry->handle($request, $device);
 
+        DisplayTrace::log('display.request', [
+            'device_id' => $device->id,
+            'mac' => $request->header('id'),
+            'current_screen_image' => $device->current_screen_image,
+            'is_pause_active' => $device->isPauseActive(),
+            'is_sleep_active' => $device->isSleepModeActive(),
+            'mirror_device_id' => $device->mirror_device_id,
+        ]);
+
         $cycle = $this->runDisplayCycle->handle($device);
 
         $imagePath = $cycle['image_path'];
         $refreshTimeOverride = $cycle['refresh_time_override'];
+
+        DisplayTrace::log('display.served', [
+            'device_id' => $device->id,
+            'image_path' => $imagePath,
+            'exists_on_disk' => $imagePath ? Storage::disk('public')->exists($imagePath) : null,
+            'screen_identity' => $cycle['screen_identity'],
+            'refresh_rate' => $refreshTimeOverride ?? $device->default_refresh_interval,
+        ]);
 
         $response = [
             'status' => 0,

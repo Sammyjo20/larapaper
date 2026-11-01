@@ -8,6 +8,7 @@ use App\Models\Device;
 use App\Models\Plugin;
 use App\Services\DeviceImageResolver;
 use App\Services\DeviceScreenFilename;
+use App\Services\DisplayTrace;
 use App\Services\ImageGenerationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,14 @@ class CurrentScreenController extends Controller
         // image so both endpoints land on the same history slot for one screen.
         $owner = $offlineImagePath === null && $imageUuid ? Plugin::where('current_image', $imageUuid)->first() : null;
         $identity = $owner ? 'plugin:'.$owner->id : 'device:'.$device->id;
+
+        DisplayTrace::log('current_screen.served', [
+            'device_id' => $device->id,
+            'source_device_id' => $source->id,
+            'image_path' => $imagePath,
+            'exists_on_disk' => $imagePath ? Storage::disk('public')->exists($imagePath) : null,
+            'is_offline' => $offlineImagePath !== null,
+        ]);
 
         $response = [
             'status' => 200,
